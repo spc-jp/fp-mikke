@@ -1,918 +1,1247 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TaxValue Planner｜付加価値プラン構築シミュレーター</title>
-  <meta name="description" content="税理士・経営コンサルタント向け 付加価値サービス構築シミュレーター" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FPみっけ｜FPに頼らずできるライフプラン診断</title>
+<meta name="description" content="入力するだけで家計診断とライフプラン表が出るアプリ。FPに相談する前のセルフチェックに。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --brand:#225AD3;
+  --brand-light:#0179E8;
+  --brand-bg:#EAF1FB;
+  --bg:#F5F7FA;
+  --card:#FFFFFF;
+  --text:#1A2238;
+  --text-sub:#5A6478;
+  --border:#E2E7EE;
+  --warning:#E8551B;
+  --success:#1FA968;
+  --gold:#D0A900;
+  --shadow:0 4px 16px rgba(34,90,211,0.08);
+  --shadow-lg:0 8px 32px rgba(34,90,211,0.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;font-size:15px}
+h1,h2,h3{font-family:'Noto Serif JP',serif;font-weight:700;line-height:1.4}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select{font-family:inherit;font-size:15px}
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+/* ヘッダー */
+.header{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-light) 100%);color:#fff;padding:24px 20px;text-align:center;box-shadow:var(--shadow)}
+.header .logo{font-family:'Noto Serif JP',serif;font-size:28px;font-weight:700;letter-spacing:0.05em}
+.header .logo .accent{color:#FFE066}
+.header .tagline{font-size:13px;opacity:0.9;margin-top:6px;letter-spacing:0.08em}
 
-  <!-- React 18 -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+/* コンテナ */
+.container{max-width:760px;margin:0 auto;padding:24px 16px 80px}
 
-  <!-- Babel Standalone（JSXをブラウザで変換） -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+/* イントロ */
+.intro{background:var(--card);border-radius:16px;padding:28px 24px;margin-bottom:24px;box-shadow:var(--shadow)}
+.intro h2{font-size:22px;color:var(--brand);margin-bottom:14px}
+.intro p{color:var(--text-sub);font-size:14px;margin-bottom:8px}
+.intro ul{margin:14px 0 0 20px;color:var(--text-sub);font-size:14px}
+.intro ul li{margin-bottom:4px}
 
-  <style>
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-in { animation: fadeIn 0.25s ease-out both; }
+/* プログレス */
+.progress-wrap{background:var(--card);border-radius:14px;padding:18px 20px;margin-bottom:20px;box-shadow:var(--shadow)}
+.progress-text{font-size:13px;color:var(--text-sub);margin-bottom:8px;display:flex;justify-content:space-between}
+.progress-text .step-name{color:var(--brand);font-weight:700}
+.progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.progress-bar-inner{height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-light));border-radius:4px;transition:width 0.4s ease}
 
-    /* line-clamp フォールバック（Tailwind CDNでも基本動くが念のため） */
-    .line-clamp-2 {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
+/* カード */
+.card{background:var(--card);border-radius:16px;padding:28px 22px;margin-bottom:20px;box-shadow:var(--shadow)}
+.card h3{font-size:19px;color:var(--brand);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.card h3 .step-num{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:var(--brand);color:#fff;border-radius:50%;font-size:14px;font-family:'Noto Sans JP',sans-serif}
+.card .desc{font-size:13px;color:var(--text-sub);margin-bottom:22px}
 
-    body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
-  </style>
+/* フォーム */
+.field{margin-bottom:18px}
+.field label{display:block;font-size:14px;font-weight:500;margin-bottom:6px;color:var(--text)}
+.field .hint{font-size:12px;color:var(--text-sub);margin-bottom:6px;display:block}
+.field input[type="text"],
+.field input[type="number"],
+.field select{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;background:#FAFBFD;transition:all 0.2s}
+.field input:focus,.field select:focus{outline:none;border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px rgba(34,90,211,0.12)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:520px){.field-row-3{grid-template-columns:1fr 1fr}}
+
+.unit-input{position:relative}
+.unit-input input{padding-right:40px}
+.unit-input .unit{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text-sub);font-size:13px;pointer-events:none}
+
+/* 子供エリア */
+.children-list{margin-top:8px}
+.child-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.child-row input{flex:1}
+.child-row .remove-btn{padding:8px 12px;background:#FFE5E0;color:var(--warning);border-radius:8px;font-size:13px;font-weight:500}
+.add-btn{padding:8px 16px;background:var(--brand-bg);color:var(--brand);border-radius:8px;font-size:13px;font-weight:500;margin-top:6px}
+
+/* 大きな出費 */
+.event-row{display:grid;grid-template-columns:1fr 90px 1fr 40px;gap:8px;align-items:center;margin-bottom:8px}
+@media(max-width:520px){.event-row{grid-template-columns:1fr 1fr;gap:6px}.event-row .remove-btn{grid-column:span 2}}
+
+/* ナビゲーション */
+.nav-row{display:flex;gap:12px;margin-top:24px}
+.btn{padding:14px 24px;border-radius:12px;font-weight:700;font-size:15px;transition:all 0.2s;flex:1;text-align:center}
+.btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand-light));color:#fff;box-shadow:0 4px 12px rgba(34,90,211,0.3)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(34,90,211,0.4)}
+.btn-secondary{background:var(--card);color:var(--brand);border:1.5px solid var(--brand)}
+.btn-secondary:hover{background:var(--brand-bg)}
+.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+
+/* 結果画面 */
+.result-header{text-align:center;padding:32px 20px;background:linear-gradient(135deg,var(--brand) 0%,var(--brand-light) 100%);color:#fff;border-radius:16px;margin-bottom:20px;box-shadow:var(--shadow-lg)}
+.result-header h2{font-size:22px;margin-bottom:8px}
+.result-header p{font-size:13px;opacity:0.9}
+
+/* スコア */
+.score-card{text-align:center;padding:32px 20px}
+.score-circle{position:relative;width:200px;height:200px;margin:0 auto 16px}
+.score-circle svg{transform:rotate(-90deg)}
+.score-circle .score-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.score-circle .score-num{font-family:'Noto Serif JP',serif;font-size:54px;font-weight:700;color:var(--brand);line-height:1}
+.score-circle .score-max{font-size:14px;color:var(--text-sub);margin-top:4px}
+.score-rank{display:inline-block;padding:6px 18px;border-radius:20px;font-size:14px;font-weight:700;margin-top:8px}
+.rank-S{background:#FEF3C7;color:#B45309}
+.rank-A{background:#DBEAFE;color:#1E40AF}
+.rank-B{background:#D1FAE5;color:#047857}
+.rank-C{background:#FED7AA;color:#9A3412}
+.rank-D{background:#FECACA;color:#B91C1C}
+.score-comment{margin-top:12px;font-size:14px;color:var(--text-sub);max-width:500px;margin-left:auto;margin-right:auto}
+
+/* チャート */
+.chart-card h3{margin-bottom:14px}
+.chart-wrap{position:relative;height:320px}
+.chart-wrap.short{height:260px}
+
+/* 数値ハイライト */
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.metric{background:var(--brand-bg);border-radius:10px;padding:14px;text-align:center}
+.metric .label{font-size:12px;color:var(--text-sub);margin-bottom:4px}
+.metric .value{font-family:'Noto Serif JP',serif;font-size:20px;font-weight:700;color:var(--brand)}
+.metric .value.warn{color:var(--warning)}
+.metric .value.good{color:var(--success)}
+
+/* 老後資金 */
+.retire-summary{background:linear-gradient(135deg,#FEF9E7,#FFFFFF);border:1.5px solid #FCE588;border-radius:12px;padding:18px;margin-top:14px}
+.retire-summary.warn{background:linear-gradient(135deg,#FEE6DC,#FFFFFF);border-color:#F8B4A0}
+.retire-summary.good{background:linear-gradient(135deg,#D9F5E6,#FFFFFF);border-color:#7FD9A8}
+.retire-summary .title{font-size:14px;font-weight:700;margin-bottom:6px}
+.retire-summary .amount{font-family:'Noto Serif JP',serif;font-size:24px;font-weight:700;color:var(--brand)}
+.retire-summary .amount.warn{color:var(--warning)}
+.retire-summary .amount.good{color:var(--success)}
+.retire-summary .note{font-size:12px;color:var(--text-sub);margin-top:6px}
+
+/* 改善ポイント */
+.advice-list{list-style:none}
+.advice-item{display:flex;gap:14px;padding:16px;background:#FAFBFD;border-radius:12px;margin-bottom:10px;border-left:4px solid var(--brand)}
+.advice-item.priority-high{border-left-color:var(--warning);background:#FFF8F5}
+.advice-item.priority-mid{border-left-color:var(--gold);background:#FFFCF0}
+.advice-item.priority-low{border-left-color:var(--success);background:#F4FBF7}
+.advice-num{flex:0 0 32px;height:32px;background:var(--brand);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.advice-item.priority-high .advice-num{background:var(--warning)}
+.advice-item.priority-mid .advice-num{background:var(--gold)}
+.advice-item.priority-low .advice-num{background:var(--success)}
+.advice-body{flex:1}
+.advice-title{font-weight:700;margin-bottom:4px;font-size:15px}
+.advice-text{font-size:13px;color:var(--text-sub)}
+
+/* アクションボタン */
+.action-row{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}
+.action-row .btn{flex:1;min-width:140px}
+
+/* フッター */
+.footer{text-align:center;padding:30px 20px;color:var(--text-sub);font-size:12px}
+.footer a{color:var(--brand);text-decoration:none;margin:0 8px}
+
+/* モーダル */
+.modal{display:none;position:fixed;inset:0;background:rgba(26,34,56,0.7);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.modal-content{background:#fff;border-radius:16px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;padding:28px 22px;position:relative}
+.modal-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text-sub)}
+.modal h3{font-size:18px;color:var(--brand);margin-bottom:14px}
+.modal p{font-size:13px;color:var(--text-sub);margin-bottom:10px}
+
+/* ロック画面 */
+.lock-overlay{display:none;position:fixed;inset:0;background:rgba(26,34,56,0.85);z-index:200;align-items:center;justify-content:center;padding:20px}
+.lock-overlay.show{display:flex}
+.lock-card{background:#fff;border-radius:16px;max-width:420px;width:100%;padding:32px 24px;text-align:center}
+.lock-icon{font-size:48px;margin-bottom:14px}
+.lock-card h3{font-size:20px;margin-bottom:8px;color:var(--brand)}
+.lock-card p{font-size:14px;color:var(--text-sub);margin-bottom:14px}
+.price-tag{display:inline-block;padding:8px 18px;background:var(--brand-bg);color:var(--brand);border-radius:20px;font-weight:700;margin-bottom:18px}
+.lock-card input{width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:10px;text-align:center;font-size:15px}
+.lock-msg{font-size:12px;color:var(--warning);min-height:18px;margin-bottom:8px}
+
+/* 印刷 */
+@media print{
+  .header,.footer,.action-row,.nav-row,.progress-wrap,.modal{display:none !important}
+  .container{padding:0;max-width:100%}
+  .card{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid}
+  body{background:#fff}
+}
+
+/* アニメーション */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeUp 0.4s ease}
+
+.hidden{display:none !important}
+</style>
 </head>
 <body>
-  <div id="root"></div>
 
-  <script type="text/babel" data-presets="react">
-    const { useState } = React;
+<div class="header">
+  <div class="logo">FP<span class="accent">みっけ</span></div>
+  <div class="tagline">FPに頼らず、まず自分で診断。</div>
+</div>
 
-    /* =========================================================
-       Lucide風 アイコン（インラインSVGで再現・外部依存ゼロ）
-       ========================================================= */
-    const Icon = ({ children, className = "w-5 h-5" }) => (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-      >
-        {children}
-      </svg>
-    );
+<div class="container">
 
-    const Briefcase = (p) => (
-      <Icon {...p}>
-        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-      </Icon>
-    );
-    const TrendingUp = (p) => (
-      <Icon {...p}>
-        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
-        <polyline points="16 7 22 7 22 13"></polyline>
-      </Icon>
-    );
-    const Users = (p) => (
-      <Icon {...p}>
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-        <circle cx="9" cy="7" r="4"></circle>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-      </Icon>
-    );
-    const Calculator = (p) => (
-      <Icon {...p}>
-        <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
-        <line x1="8" y1="6" x2="16" y2="6"></line>
-        <line x1="16" y1="14" x2="16" y2="18"></line>
-        <line x1="8" y1="10" x2="8" y2="10.01"></line>
-        <line x1="12" y1="10" x2="12" y2="10.01"></line>
-        <line x1="16" y1="10" x2="16" y2="10.01"></line>
-        <line x1="8" y1="14" x2="8" y2="14.01"></line>
-        <line x1="12" y1="14" x2="12" y2="14.01"></line>
-        <line x1="8" y1="18" x2="8" y2="18.01"></line>
-        <line x1="12" y1="18" x2="12" y2="18.01"></line>
-      </Icon>
-    );
-    const FileText = (p) => (
-      <Icon {...p}>
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-        <polyline points="14 2 14 8 20 8"></polyline>
-        <line x1="16" y1="13" x2="8" y2="13"></line>
-        <line x1="16" y1="17" x2="8" y2="17"></line>
-        <line x1="10" y1="9" x2="8" y2="9"></line>
-      </Icon>
-    );
-    const ChevronRight = (p) => (
-      <Icon {...p}>
-        <polyline points="9 18 15 12 9 6"></polyline>
-      </Icon>
-    );
-    const CheckCircle = (p) => (
-      <Icon {...p}>
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-      </Icon>
-    );
-    const Lightbulb = (p) => (
-      <Icon {...p}>
-        <path d="M9 18h6"></path>
-        <path d="M10 22h4"></path>
-        <path d="M12 2a7 7 0 0 0-4 12.7c.7.6 1 1.4 1 2.3v1h6v-1c0-.9.3-1.7 1-2.3A7 7 0 0 0 12 2z"></path>
-      </Icon>
-    );
-    const Settings = (p) => (
-      <Icon {...p}>
-        <circle cx="12" cy="12" r="3"></circle>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.36.21.63.51.82.86.18.36.27.76.27 1.14H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-      </Icon>
-    );
-    const BrainCircuit = (p) => (
-      <Icon {...p}>
-        <path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"></path>
-        <path d="M9 13a4.5 4.5 0 0 0 3-4"></path>
-        <path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"></path>
-        <path d="M3.477 10.896a4 4 0 0 1 .585-.396"></path>
-        <path d="M6 18a4 4 0 0 1-1.967-.516"></path>
-        <path d="M12 13h4"></path>
-        <path d="M12 18h6a2 2 0 0 1 2 2v1"></path>
-        <path d="M12 8h8"></path>
-        <path d="M16 8V5a2 2 0 0 1 2-2"></path>
-        <circle cx="16" cy="13" r=".5"></circle>
-        <circle cx="18" cy="3" r=".5"></circle>
-        <circle cx="20" cy="21" r=".5"></circle>
-        <circle cx="20" cy="8" r=".5"></circle>
-      </Icon>
-    );
-    const PiggyBank = (p) => (
-      <Icon {...p}>
-        <path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-7.5-1-10 1-2.5 2-3 6-1 9 .5.7 1 1 1 1H4c0 1 0 2 1 2h2v1l1 1h2v-1l1 .5V21h2v-1.5l1-.5v-2c.5 0 1-.5 1-.5l1.5 1v1l1 1h2v-1c0-1 1-2 1-2 .8-1 1-2 1-3v-2c0-2-2-2-2-2-.8-2-2-3-2-3 0-.5.5-1 .5-1V5z"></path>
-        <path d="M2 9v1c0 1 1 2 2 2"></path>
-        <path d="M16 11h.01"></path>
-      </Icon>
-    );
-    const Building = (p) => (
-      <Icon {...p}>
-        <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
-        <path d="M9 22v-4h6v4"></path>
-        <path d="M8 6h.01"></path>
-        <path d="M16 6h.01"></path>
-        <path d="M12 6h.01"></path>
-        <path d="M12 10h.01"></path>
-        <path d="M12 14h.01"></path>
-        <path d="M16 10h.01"></path>
-        <path d="M16 14h.01"></path>
-        <path d="M8 10h.01"></path>
-        <path d="M8 14h.01"></path>
-      </Icon>
-    );
-    const X = (p) => (
-      <Icon {...p}>
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </Icon>
-    );
-    const Plus = (p) => (
-      <Icon {...p}>
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </Icon>
-    );
-    const Copy = (p) => (
-      <Icon {...p}>
-        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-      </Icon>
-    );
-    const LineChart = (p) => (
-      <Icon {...p}>
-        <path d="M3 3v18h18"></path>
-        <path d="m19 9-5 5-4-4-3 3"></path>
-      </Icon>
-    );
-    const Target = (p) => (
-      <Icon {...p}>
-        <circle cx="12" cy="12" r="10"></circle>
-        <circle cx="12" cy="12" r="6"></circle>
-        <circle cx="12" cy="12" r="2"></circle>
-      </Icon>
-    );
-    const Laptop = (p) => (
-      <Icon {...p}>
-        <path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"></path>
-      </Icon>
-    );
+  <!-- イントロ画面 -->
+  <div id="screen-intro">
+    <div class="intro fade-in">
+      <h2>💡 入力するだけで、ライフプランがまるわかり</h2>
+      <p>FP（ファイナンシャルプランナー）に相談する前に、まずは自分で家計を見える化してみませんか？</p>
+      <p>5ステップの入力で、95歳までの資産推移、家計健全度スコア、改善ポイントを自動診断します。</p>
+      <ul>
+        <li>所要時間：約5〜8分</li>
+        <li>入力データはお使いの端末内にのみ保存（外部送信なし）</li>
+        <li>結果は印刷・コピー可能</li>
+      </ul>
+    </div>
+    <button class="btn btn-primary" onclick="startWizard()">診断をはじめる ▶</button>
+  </div>
 
-    /* =========================================================
-       税理士・会計事務所向け データ
-       ========================================================= */
-    const taxValueAddIdeas = [
-      {
-        id: 't1',
-        title: "AI活用 経営分析レポート",
-        category: "経営支援",
-        icon: <BrainCircuit className="w-8 h-8 text-blue-500" />,
-        description: "試算表データをAIで分析し、業界平均との比較や将来予測、改善提案を含むレポートを自動生成・提供するサービス。",
-        target: "全顧問先（特に成長意欲のある企業）",
-        price: "月額 +5,000円〜10,000円",
-        effort: "低（AI活用による自動化）",
-        steps: [
-          "既存の試算表フォーマットからデータ抽出",
-          "生成AI（ChatGPT等）へプロンプト入力（収益性、安全性等の分析指示）",
-          "出力結果を専門家がレビュー・加筆修正",
-          "月次訪問・面談時にレポートとして提出"
-        ]
-      },
-      {
-        id: 't2',
-        title: "AI 補助金・助成金 自動診断",
-        category: "資金繰り支援",
-        icon: <PiggyBank className="w-8 h-8 text-green-500" />,
-        description: "顧問先の事業内容や財務状況から、申請可能性の高い補助金を定期的にAI診断して提案するサービス。",
-        target: "設備投資を控えている企業、採用注力企業",
-        price: "月額 +3,000円〜（＋申請成功報酬）",
-        effort: "中（最新情報のキャッチアップが必要）",
-        steps: [
-          "顧問先の基本情報・投資予定をヒアリングシートにまとめる",
-          "AIを用いて最新の補助金情報とマッチング",
-          "申請可能性の高いものをリスト化して提案",
-          "（オプション）申請書ドラフトのAI作成支援"
-        ]
-      },
-      {
-        id: 't3',
-        title: "クラウド・経理BPOパッケージ",
-        category: "業務改善",
-        icon: <Calculator className="w-8 h-8 text-purple-500" />,
-        description: "記帳代行だけでなく、クラウドツール（請求、勤怠、経費精算）の導入から運用までを丸ごと請け負うサービス。",
-        target: "人手不足に悩む中小企業、経理担当者の退職予定企業",
-        price: "月額 +50,000円〜150,000円",
-        effort: "高（初期設定と標準化が必要）",
-        steps: [
-          "現在の経理フローのヒアリングと課題抽出",
-          "クラウド会計・各種SaaSの選定と初期セットアップ",
-          "業務フローの再構築・マニュアル化",
-          "記帳業務のAI-OCR化による内製効率化と運用開始"
-        ]
-      },
-      {
-        id: 't4',
-        title: "スモールM&A / 事業承継アドバイザリー",
-        category: "高度専門支援",
-        icon: <Building className="w-8 h-8 text-orange-500" />,
-        description: "後継者不在の企業に対する事業承継計画の策定や、小規模M&Aのバリュエーション、買い手探し支援。",
-        target: "社長が高齢化している黒字企業",
-        price: "着手金＋成功報酬（取引額の数%）",
-        effort: "高（専門知識とネットワークが必要）",
-        steps: [
-          "決算事前対策でのヒアリング時に承継ニーズを確認",
-          "自社株評価・簡易企業価値評価の実施",
-          "M&Aプラットフォームの活用・買い手候補の選定",
-          "デューデリジェンスサポート・最終契約支援"
-        ]
-      }
-    ];
+  <!-- ウィザード画面 -->
+  <div id="screen-wizard" class="hidden">
+    <div class="progress-wrap">
+      <div class="progress-text">
+        <span>ステップ <span id="current-step">1</span> / 5</span>
+        <span class="step-name" id="step-name">基本情報</span>
+      </div>
+      <div class="progress-bar"><div class="progress-bar-inner" id="progress-bar" style="width:20%"></div></div>
+    </div>
 
-    const taxPresets = [
-      "法人メイン（売上1億〜5億）",
-      "創業期・スタートアップ中心",
-      "個人事業主・フリーランス中心",
-      "資産家・地主（相続メイン）",
-      "医療法人・クリニック",
-      "飲食・小売・サービス業"
-    ];
+    <!-- ステップ1：基本情報 -->
+    <div class="card step-card" id="step-1">
+      <h3><span class="step-num">1</span>基本情報</h3>
+      <p class="desc">あなたとご家族の基本情報を教えてください。</p>
 
-    const taxPainPoints = [
-      "単価が上がらない・記帳業務に追われている",
-      "スタッフの採用・定着が難しい（属人化）",
-      "他事務所との差別化ができていない",
-      "顧問先の業績悪化・資金繰り不安"
-    ];
+      <div class="field">
+        <label>お名前（任意）</label>
+        <input type="text" id="name" placeholder="例：日本 太郎">
+      </div>
 
-    /* =========================================================
-       経営コンサルタント向け データ
-       ========================================================= */
-    const consultingValueAddIdeas = [
-      {
-        id: 'c1',
-        title: "社外CFO（伴走型 経営会議支援）",
-        category: "継続支援（ストック化）",
-        icon: <LineChart className="w-8 h-8 text-blue-500" />,
-        description: "スポットでの計画策定で終わらせず、月次経営会議にファシリテーターとして入り、予実管理とアクションの実行を担保する。",
-        target: "売上3億〜10億で右腕人材（CFO）が不在の企業",
-        price: "月額 100,000円〜300,000円",
-        effort: "中（フォーマット化で属人化を排除可能）",
-        steps: [
-          "キックオフにて年間目標とKPIの設定",
-          "月次経営会議のフォーマット（アジェンダ）の固定化",
-          "AIを活用した会議議事録・決定事項の即時要約・共有",
-          "次月までのアクションアイテム（宿題）の進捗トラッキング"
-        ]
-      },
-      {
-        id: 'c2',
-        title: "AI活用 高速・事業計画策定支援",
-        category: "資金調達・補助金",
-        icon: <Target className="w-8 h-8 text-red-500" />,
-        description: "経営者の頭の中にある構想をヒアリングし、生成AIを用いて銀行や補助金審査員に刺さる事業計画書を高速でドラフトする。",
-        target: "新規事業立ち上げ、大型設備投資を控える企業",
-        price: "着手金10万円 ＋ 成功報酬10%",
-        effort: "低〜中（AIプロンプトの型化による超効率化）",
-        steps: [
-          "独自のヒアリングシート（強み・市場・計画）への記入依頼",
-          "経営者との壁打ち（60分〜90分）",
-          "ヒアリング内容をAIに入力し、SWOT分析や計画書本文をドラフト",
-          "コンサルタントの知見による精査・修正と提出サポート"
-        ]
-      },
-      {
-        id: 'c3',
-        title: "DX推進・バックオフィスSaaS導入支援",
-        category: "組織改革",
-        icon: <Laptop className="w-8 h-8 text-purple-500" />,
-        description: "単なるツール紹介ではなく、業務フローの棚卸しから最適なSaaSの選定、社内定着（マニュアル化）までをパッケージ化。",
-        target: "アナログ業務が多く、残業過多に悩む企業",
-        price: "プロジェクト型：50万円〜150万円",
-        effort: "高（複数ツールの知見とチェンジマネジメントが必要）",
-        steps: [
-          "現場担当者へのヒアリングによる「現状の業務フロー図（As-Is）」作成",
-          "課題抽出と「理想の業務フロー（To-Be）」の策定・SaaS選定",
-          "テスト導入と現場向け操作マニュアルのAI自動作成",
-          "本稼働サポートと定着化（3ヶ月間の伴走）"
-        ]
-      },
-      {
-        id: 'c4',
-        title: "幹部育成・人事評価制度 構築パッケージ",
-        category: "人事・組織",
-        icon: <Users className="w-8 h-8 text-orange-500" />,
-        description: "企業の「成長痛」を解消するための評価制度作成。AIを用いて業界他社の事例ベンチマークや評価項目のドラフトを行う。",
-        target: "従業員数が20名〜50名の壁に直面している企業",
-        price: "プロジェクト型：100万円〜200万円",
-        effort: "中〜高（経営陣との深い合意形成が必要）",
-        steps: [
-          "経営層へのヒアリングによる「求める人物像」の言語化",
-          "AIによる役職・職種別の「評価項目（ルーブリック）」のドラフト作成",
-          "評価者（幹部）向けフィードバック研修の実施",
-          "評価制度のトライアル運用と制度修正"
-        ]
-      }
-    ];
+      <div class="field-row">
+        <div class="field">
+          <label>年齢 <span style="color:var(--warning)">*</span></label>
+          <div class="unit-input"><input type="number" id="age" min="18" max="100" placeholder="45"><span class="unit">歳</span></div>
+        </div>
+        <div class="field">
+          <label>性別</label>
+          <select id="gender">
+            <option value="">選択してください</option>
+            <option value="male">男性</option>
+            <option value="female">女性</option>
+            <option value="other">その他・回答しない</option>
+          </select>
+        </div>
+      </div>
 
-    const consultingPresets = [
-      "売上1億〜5億のオーナー企業",
-      "売上5億〜30億の中堅企業",
-      "スタートアップ・ベンチャー",
-      "製造業・建設業中心",
-      "IT・サービス業中心",
-      "特定の地域（商圏）密着型"
-    ];
+      <div class="field">
+        <label>職業</label>
+        <select id="occupation">
+          <option value="employee">会社員</option>
+          <option value="public">公務員</option>
+          <option value="self">自営業</option>
+          <option value="freelance">フリーランス</option>
+          <option value="housewife">専業主婦・主夫</option>
+          <option value="other">その他</option>
+        </select>
+      </div>
 
-    const consultingPainPoints = [
-      "単発案件（スポット）ばかりで、継続収入（ストック）にならない",
-      "提案や実務がコンサル個人のスキルに依存（属人化）",
-      "新規顧客の獲得コストが高い（紹介頼み）",
-      "クライアントの実行力が弱く、成果・改善が進まない"
-    ];
+      <div class="field">
+        <label>居住地（都道府県）</label>
+        <input type="text" id="prefecture" placeholder="例：東京都">
+      </div>
 
-    /* =========================================================
-       App 本体
-       ========================================================= */
-    function App() {
-      const [step, setStep] = useState(0);
-      const [businessMode, setBusinessMode] = useState(null);
+      <div class="field">
+        <label>配偶者の有無</label>
+        <select id="spouse" onchange="toggleSpouse()">
+          <option value="no">なし</option>
+          <option value="yes">あり</option>
+        </select>
+      </div>
 
-      const [profile, setProfile] = useState({
-        staffCount: '1-5名',
-        clientTypes: [],
-        painPoint: ''
-      });
-      const [selectedIdea, setSelectedIdea] = useState(null);
-      const [newClientType, setNewClientType] = useState("");
-      const [adoptedIdea, setAdoptedIdea] = useState(null);
-
-      const handleSelectMode = (mode) => {
-        setBusinessMode(mode);
-        setProfile({
-          staffCount: '1-5名',
-          clientTypes: [mode === 'tax' ? "法人メイン（売上1億〜5億）" : "売上1億〜5億のオーナー企業"],
-          painPoint: mode === 'tax' ? taxPainPoints[0] : consultingPainPoints[0]
-        });
-        setStep(1);
-      };
-
-      const handleAddClientType = (type) => {
-        if (type.trim() !== "" && !profile.clientTypes.includes(type.trim())) {
-          setProfile({ ...profile, clientTypes: [...profile.clientTypes, type.trim()] });
-        }
-        setNewClientType("");
-      };
-
-      const handleRemoveClientType = (typeToRemove) => {
-        setProfile({
-          ...profile,
-          clientTypes: profile.clientTypes.filter(type => type !== typeToRemove)
-        });
-      };
-
-      const handleAdoptPlan = () => {
-        setAdoptedIdea(selectedIdea);
-        setSelectedIdea(null);
-        setStep(3);
-      };
-
-      const handleReset = () => {
-        setStep(0);
-        setBusinessMode(null);
-        setSelectedIdea(null);
-        setAdoptedIdea(null);
-      };
-
-      const copyToClipboard = (text, buttonElement) => {
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        document.body.appendChild(textArea);
-        textArea.select();
-        try {
-          document.execCommand('copy');
-          const textSpan = buttonElement.querySelector('span') || buttonElement;
-          const originalText = textSpan.innerText;
-          textSpan.innerText = "コピーしました！";
-          setTimeout(() => {
-            textSpan.innerText = originalText;
-          }, 2000);
-        } catch (err) {
-          console.error('Failed to copy', err);
-        }
-        document.body.removeChild(textArea);
-      };
-
-      const activePresets = businessMode === 'tax' ? taxPresets : consultingPresets;
-      const activePainPoints = businessMode === 'tax' ? taxPainPoints : consultingPainPoints;
-      const activeIdeas = businessMode === 'tax' ? taxValueAddIdeas : consultingValueAddIdeas;
-
-      // === Step 0: 入口画面 ===
-      const renderStep0 = () => (
-        <div className="flex flex-col items-center justify-center py-12 animate-fade-in">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-extrabold text-gray-900">ようこそ、TaxValue Plannerへ</h2>
-            <p className="text-gray-600 mt-4 max-w-xl mx-auto">
-              ヒアリング内容を元に、次の一手となる付加価値プランをご提案します。<br/>
-              まずは、対象となる<span className="font-bold">事業形態</span>を選択してください。
-            </p>
+      <div id="spouse-fields" class="hidden">
+        <div class="field-row">
+          <div class="field">
+            <label>配偶者の年齢</label>
+            <div class="unit-input"><input type="number" id="spouseAge" min="18" max="100"><span class="unit">歳</span></div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl px-4">
-            <div
-              onClick={() => handleSelectMode('tax')}
-              className="bg-white rounded-2xl shadow-md hover:shadow-xl border-2 border-transparent hover:border-indigo-500 p-8 cursor-pointer transition-all transform hover:-translate-y-1 group"
-            >
-              <div className="bg-indigo-50 w-16 h-16 rounded-full flex items-center justify-center mb-6 group-hover:bg-indigo-100 transition-colors">
-                <Calculator className="w-8 h-8 text-indigo-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">税理士・会計事務所 向け</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                記帳代行からの脱却、単価アップ、人材不足解消に向けた付加価値サービスの構築を行います。
-              </p>
-              <ul className="text-sm text-gray-500 space-y-1 mt-4">
-                <li>✓ 経営分析レポート自動化</li>
-                <li>✓ 経理BPOパッケージ</li>
-                <li>✓ 補助金・M&A支援 など</li>
-              </ul>
-            </div>
-
-            <div
-              onClick={() => handleSelectMode('consult')}
-              className="bg-white rounded-2xl shadow-md hover:shadow-xl border-2 border-transparent hover:border-emerald-500 p-8 cursor-pointer transition-all transform hover:-translate-y-1 group"
-            >
-              <div className="bg-emerald-50 w-16 h-16 rounded-full flex items-center justify-center mb-6 group-hover:bg-emerald-100 transition-colors">
-                <Briefcase className="w-8 h-8 text-emerald-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">経営コンサルタント 向け</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                単発案件から継続契約（ストック）への転換、提案の属人化解消、AIを活用した超効率化を図ります。
-              </p>
-              <ul className="text-sm text-gray-500 space-y-1 mt-4">
-                <li>✓ 社外CFO（伴走型会議）</li>
-                <li>✓ AI高速・事業計画策定</li>
-                <li>✓ DX・SaaS導入支援 など</li>
-              </ul>
-            </div>
+          <div class="field">
+            <label>配偶者の年収</label>
+            <div class="unit-input"><input type="number" id="spouseIncome" min="0" placeholder="0"><span class="unit">万円</span></div>
           </div>
         </div>
-      );
+      </div>
 
-      // === Step 1: ヒアリング ===
-      const renderStep1 = () => (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-fade-in">
-          <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-            <Users className="w-6 h-6 mr-2 text-indigo-600" />
-            Step 1: 事務所の現状ヒアリング
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">組織の規模（スタッフ数）</label>
-              <select
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                value={profile.staffCount}
-                onChange={(e) => setProfile({...profile, staffCount: e.target.value})}
-              >
-                <option>1-5名（代表＋パート・少数精鋭）</option>
-                <option>6-15名（組織化フェーズ）</option>
-                <option>16名以上（部門化・大規模）</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">主な顧客層（複数選択・自由入力可）</label>
+      <div class="field">
+        <label>お子様の人数と年齢</label>
+        <span class="hint">「お子様を追加」ボタンで人数分を入力してください</span>
+        <div class="children-list" id="children-list"></div>
+        <button type="button" class="add-btn" onclick="addChild()">＋ お子様を追加</button>
+      </div>
 
-              <div className="flex flex-wrap gap-2 mb-3">
-                {profile.clientTypes.map((type, index) => (
-                  <span key={index} className="inline-flex items-center bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full">
-                    {type}
-                    <button onClick={() => handleRemoveClientType(type)} className="ml-1.5 focus:outline-none text-indigo-600 hover:text-indigo-900 rounded-full hover:bg-indigo-200 p-0.5 transition-colors">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
+      <div class="nav-row">
+        <button class="btn btn-primary" onclick="nextStep()">次へ ▶</button>
+      </div>
+    </div>
 
-              <div className="flex gap-2 mb-3">
-                <input
-                  type="text"
-                  className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
-                  placeholder="新しい顧客層を手入力... (例: 建設業)"
-                  value={newClientType}
-                  onChange={(e) => setNewClientType(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddClientType(newClientType);
-                    }
-                  }}
-                />
-                <button
-                  onClick={() => handleAddClientType(newClientType)}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg flex items-center text-sm font-medium transition-colors"
-                >
-                  <Plus className="w-4 h-4 mr-1" /> 追加
-                </button>
-              </div>
+    <!-- ステップ2：収入 -->
+    <div class="card step-card hidden" id="step-2">
+      <h3><span class="step-num">2</span>収入</h3>
+      <p class="desc">現在の収入状況について教えてください。</p>
 
-              <div className="flex flex-wrap gap-2">
-                {activePresets.map((type, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleAddClientType(type)}
-                    disabled={profile.clientTypes.includes(type)}
-                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                      profile.clientTypes.includes(type)
-                      ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
-                      : 'border-indigo-200 bg-white text-indigo-600 hover:bg-indigo-50'
-                    }`}
-                  >
-                    + {type}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">現在一番の課題</label>
-              <select
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                value={profile.painPoint}
-                onChange={(e) => setProfile({...profile, painPoint: e.target.value})}
-              >
-                {activePainPoints.map((point, idx) => (
-                  <option key={idx} value={point}>{point}</option>
-                ))}
-              </select>
-            </div>
+      <div class="field">
+        <label>本人の年収（額面）</label>
+        <div class="unit-input"><input type="number" id="annualIncome" min="0" placeholder="500"><span class="unit">万円</span></div>
+      </div>
 
-            <button
-              onClick={() => setStep(2)}
-              className={`mt-6 w-full text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center transition-colors ${businessMode === 'tax' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}
-            >
-              AIに新サービスを提案させる
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </button>
-          </div>
+      <div class="field">
+        <label>本人の手取り月収</label>
+        <span class="hint">わからなければ年収÷12×0.78でおおよその目安に</span>
+        <div class="unit-input"><input type="number" id="monthlyIncome" min="0" placeholder="32"><span class="unit">万円</span></div>
+      </div>
+
+      <div class="field">
+        <label>配偶者の手取り月収</label>
+        <div class="unit-input"><input type="number" id="spouseMonthly" min="0" placeholder="0"><span class="unit">万円</span></div>
+      </div>
+
+      <div class="field">
+        <label>その他の収入（副業・不動産・配当など、月額）</label>
+        <div class="unit-input"><input type="number" id="otherIncome" min="0" placeholder="0"><span class="unit">万円</span></div>
+      </div>
+
+      <div class="field">
+        <label>退職予定年齢</label>
+        <div class="unit-input"><input type="number" id="retireAge" min="40" max="80" value="65"><span class="unit">歳</span></div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="prevStep()">◀ 戻る</button>
+        <button class="btn btn-primary" onclick="nextStep()">次へ ▶</button>
+      </div>
+    </div>
+
+    <!-- ステップ3：支出 -->
+    <div class="card step-card hidden" id="step-3">
+      <h3><span class="step-num">3</span>支出（月額）</h3>
+      <p class="desc">毎月の支出をざっくりで結構です。</p>
+
+      <div class="field-row">
+        <div class="field">
+          <label>住居費</label>
+          <span class="hint">家賃または住宅ローン返済額</span>
+          <div class="unit-input"><input type="number" id="rent" min="0" placeholder="10"><span class="unit">万円</span></div>
         </div>
-      );
-
-      // === Step 2: 提案 ===
-      const renderStep2 = () => (
-        <div className="animate-fade-in">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center">
-              <Lightbulb className="w-6 h-6 mr-2 text-yellow-500" />
-              Step 2: 組織に最適な付加価値プラン提案
-            </h2>
-            <button onClick={() => setStep(1)} className="text-sm text-gray-500 hover:text-indigo-600">
-              ← ヒアリングに戻る
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {activeIdeas.map((idea) => (
-              <div
-                key={idea.id}
-                onClick={() => setSelectedIdea(idea)}
-                className={`bg-white p-5 rounded-xl border border-gray-200 hover:shadow-md cursor-pointer transition-all ${businessMode === 'tax' ? 'hover:border-indigo-500' : 'hover:border-emerald-500'}`}
-              >
-                <div className="flex items-start space-x-4">
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    {idea.icon}
-                  </div>
-                  <div>
-                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${businessMode === 'tax' ? 'text-indigo-600 bg-indigo-50' : 'text-emerald-600 bg-emerald-50'}`}>
-                      {idea.category}
-                    </span>
-                    <h3 className="text-lg font-bold text-gray-800 mt-2">{idea.title}</h3>
-                    <p className="text-sm text-gray-600 mt-2 line-clamp-2">{idea.description}</p>
-                    <div className="mt-3 flex items-center text-sm font-medium text-gray-800">
-                      <span className="text-gray-500 mr-2">想定単価:</span> {idea.price}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div class="field">
+          <label>食費</label>
+          <span class="hint">外食含む</span>
+          <div class="unit-input"><input type="number" id="food" min="0" placeholder="6"><span class="unit">万円</span></div>
         </div>
-      );
+      </div>
 
-      // === モーダル詳細 ===
-      const renderIdeaDetail = () => {
-        if (!selectedIdea) return null;
-        return (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in">
-            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-800">{selectedIdea.title} の導入シミュレーション</h3>
-                <button onClick={() => setSelectedIdea(null)} className="text-gray-500 hover:text-gray-800 p-2 text-xl font-bold">&times;</button>
-              </div>
-              <div className="p-6">
-                <div className="flex items-center space-x-4 mb-6">
-                  {selectedIdea.icon}
-                  <div>
-                    <p className="text-gray-600">{selectedIdea.description}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                    <p className="text-sm text-gray-500 mb-1">ターゲット顧客</p>
-                    <p className="font-semibold text-gray-800">{selectedIdea.target}</p>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                    <p className="text-sm text-green-600 mb-1">収益インパクト</p>
-                    <p className="font-bold text-green-800">{selectedIdea.price}</p>
-                  </div>
-                </div>
-
-                <h4 className="font-bold text-gray-800 mb-3 flex items-center">
-                  <Settings className="w-5 h-5 mr-2 text-gray-500"/>
-                  導入までのアクションステップ
-                </h4>
-                <div className="space-y-3 mb-8">
-                  {selectedIdea.steps.map((s, idx) => (
-                    <div key={idx} className="flex items-start">
-                      <div className="flex-shrink-0 mt-0.5">
-                        <CheckCircle className={`w-5 h-5 ${businessMode === 'tax' ? 'text-indigo-500' : 'text-emerald-500'}`} />
-                      </div>
-                      <p className="ml-3 text-gray-700">{s}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className={`p-5 rounded-xl border ${businessMode === 'tax' ? 'bg-indigo-50 border-indigo-100' : 'bg-emerald-50 border-emerald-100'}`}>
-                  <h4 className={`font-bold mb-2 ${businessMode === 'tax' ? 'text-indigo-900' : 'text-emerald-900'}`}>💡 コンサルタントからの提案メモ</h4>
-                  <p className={`text-sm ${businessMode === 'tax' ? 'text-indigo-800' : 'text-emerald-800'}`}>
-                    現在のスタッフ数（{profile.staffCount}）や課題（{profile.painPoint}）を考慮すると、まずは上位20%の優良顧客に絞ってこのサービスをテスト提供（パイロット導入）することをおすすめします。提供フローが固まってから全社展開することで、業務過多を防ぎつつ収益の底上げが可能です。
-                  </p>
-                </div>
-
-                <div className="mt-6 flex justify-end space-x-3">
-                  <button onClick={() => setSelectedIdea(null)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">キャンセル</button>
-                  <button
-                    onClick={handleAdoptPlan}
-                    className={`px-4 py-2 text-white rounded-lg transition-colors ${businessMode === 'tax' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}
-                  >
-                    プランに採用する
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      };
-
-      // === Step 3: アクション計画 ===
-      const renderStep3 = () => {
-        if (!adoptedIdea) return null;
-
-        const consultantRole = businessMode === 'tax' ? '税理士' : '経営コンサルタント';
-
-        const promptText = `# 指示
-あなたは優秀な【${consultantRole}】です。
-以下の情報を元に、顧客に提出するための「${adoptedIdea.title}」のアウトプットを作成してください。
-
-# ターゲット顧客の特徴
-${adoptedIdea.target}
-
-# 出力要件
-1. 現状の課題の抽出（簡潔に3点）
-2. 改善の方向性と具体的なアクションプラン
-3. 専門用語を避け、ITに詳しくない経営者でも理解できる言葉で記述すること。
-4. 丁寧かつ前向きなトーンで作成すること。
-
-# 参考情報・データ
-[※ここに${businessMode === 'tax' ? '試算表データ' : 'ヒアリングメモや現状の数値'}を貼り付けてください]`;
-
-        const planText = `【${adoptedIdea.title}】導入アクション計画
-
-■ 1. ターゲット顧客の抽出
-現状の主な顧客層（${profile.clientTypes.join('、')}）の中から、以下の条件に合うリストを3〜5社ピックアップ。
-・${adoptedIdea.target}
-・まずは関係性が良好で、新しい提案を聞いてくれそうな既存の優良顧客（テストマーケティング用）
-
-■ 2. 実務フローの設計
-${adoptedIdea.steps.map((stepDesc, idx) => `手順 ${idx + 1}: ${stepDesc}`).join('\n')}
-
-■ 3. 実行用プロンプトテンプレート（生成AI用）
-${promptText}
-`;
-
-        return (
-          <div className="animate-fade-in bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <CheckCircle className="w-6 h-6 mr-2 text-green-500" />
-                Step 3: アクション計画作成・実行準備
-              </h2>
-              <button onClick={() => setStep(2)} className="text-sm text-gray-500 hover:text-gray-800">
-                ← プランを選び直す
-              </button>
-            </div>
-
-            <div className={`mb-6 p-4 rounded-lg border flex items-center space-x-4 ${businessMode === 'tax' ? 'bg-indigo-50 border-indigo-100' : 'bg-emerald-50 border-emerald-100'}`}>
-               {adoptedIdea.icon}
-               <div>
-                 <h3 className={`font-bold ${businessMode === 'tax' ? 'text-indigo-900' : 'text-emerald-900'}`}>{adoptedIdea.title}</h3>
-                 <p className={`text-sm ${businessMode === 'tax' ? 'text-indigo-700' : 'text-emerald-700'}`}>このサービスを立ち上げるための具体的なロードマップとツールです。</p>
-               </div>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h4 className="font-bold text-gray-800 mb-3 border-b pb-2 flex items-center">
-                  <span className="bg-gray-800 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full mr-2">1</span>
-                  ターゲット顧客の抽出
-                </h4>
-                <p className="text-sm text-gray-600 mb-2">
-                  現状の主な顧客層である「<span className="font-semibold">{profile.clientTypes.join('、')}</span>」の中から、以下の条件に合うリストを3〜5社ピックアップしてください。
-                </p>
-                <div className="bg-yellow-50 p-3 rounded border border-yellow-200 text-sm text-yellow-800">
-                  <ul className="list-disc list-inside">
-                    <li>{adoptedIdea.target}</li>
-                    <li>まずは関係性が良好で、新しい提案を聞いてくれそうな既存の優良顧客（テストマーケティング用）</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-gray-800 mb-3 border-b pb-2 flex items-center">
-                  <span className="bg-gray-800 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full mr-2">2</span>
-                  実務フローの設計
-                </h4>
-                <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-700 space-y-3">
-                  {adoptedIdea.steps.map((stepDesc, idx) => (
-                    <div key={idx} className="flex items-start">
-                      <span className={`font-bold mr-2 whitespace-nowrap ${businessMode === 'tax' ? 'text-indigo-600' : 'text-emerald-600'}`}>手順 {idx + 1}:</span>
-                      <span>{stepDesc}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-gray-800 mb-3 border-b pb-2 flex items-center">
-                  <span className="bg-gray-800 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full mr-2">3</span>
-                  実行用プロンプトテンプレート（生成AI用）
-                </h4>
-                <p className="text-sm text-gray-600 mb-2">以下のテキストをコピーして、ChatGPTやClaudeに入力することで即座に実務を開始できます。</p>
-                <div className="bg-gray-800 rounded-lg p-4 relative group">
-                   <button
-                     className="absolute top-2 right-2 text-xs bg-gray-600 text-white px-3 py-1.5 rounded hover:bg-gray-500 opacity-0 group-hover:opacity-100 transition-opacity flex items-center"
-                     onClick={(e) => copyToClipboard(promptText, e.currentTarget)}
-                   >
-                     <Copy className="w-3 h-3 mr-1" />
-                     <span>コピー</span>
-                   </button>
-                   <pre className="text-gray-300 text-xs whitespace-pre-wrap font-mono overflow-x-auto">
-{promptText}
-                   </pre>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-center gap-4">
-              <button
-                className={`text-white font-bold py-3 px-8 rounded-full shadow-md transition-transform hover:scale-105 flex items-center justify-center ${businessMode === 'tax' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}
-                onClick={(e) => copyToClipboard(planText, e.currentTarget)}
-              >
-                <Copy className="w-5 h-5 mr-2" />
-                <span>この計画全体をテキストでコピー</span>
-              </button>
-              <button
-                className="bg-gray-100 text-gray-400 font-bold py-3 px-8 rounded-full flex items-center justify-center cursor-not-allowed"
-                title="PDF出力機能は現在準備中です"
-              >
-                <FileText className="w-5 h-5 mr-2" />
-                PDF出力 (準備中)
-              </button>
-            </div>
-          </div>
-        );
-      };
-
-      return (
-        <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
-          {/* Header */}
-          <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-            <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-              <div
-                className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={handleReset}
-              >
-                <TrendingUp className={`w-6 h-6 ${businessMode === 'consult' ? 'text-emerald-600' : 'text-indigo-600'}`} />
-                <h1 className={`text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${businessMode === 'consult' ? 'from-emerald-600 to-teal-500' : 'from-indigo-600 to-blue-500'}`}>
-                  TaxValue Planner
-                </h1>
-                <span className="ml-2 text-xs text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full">Prototype</span>
-              </div>
-
-              {step > 0 && (
-                <div className="flex items-center space-x-4">
-                  <span className={`flex items-center text-sm font-medium px-3 py-1 rounded-full ${businessMode === 'tax' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
-                    {businessMode === 'tax' ? <Calculator className="w-4 h-4 mr-1.5"/> : <Briefcase className="w-4 h-4 mr-1.5"/>}
-                    {businessMode === 'tax' ? '税理士モード' : 'コンサルモード'}
-                  </span>
-                  <button
-                    onClick={handleReset}
-                    className="text-xs text-gray-500 hover:text-gray-800 underline"
-                  >
-                    モード切替
-                  </button>
-                </div>
-              )}
-            </div>
-          </header>
-
-          {/* Main Content */}
-          <main className="max-w-6xl mx-auto px-4 py-8">
-            {step === 0 ? (
-              renderStep0()
-            ) : (
-              <>
-                <div className="mb-8">
-                  <h2 className="text-2xl font-extrabold text-gray-900">
-                    {businessMode === 'tax' ? '付加価値サービス' : 'コンサルティングメニュー'} 構築シミュレーター
-                  </h2>
-                  <p className="text-gray-600 mt-2">ヒアリング内容を元に、次の一手となる打ち手をご提案します。</p>
-                </div>
-
-                <div className="flex flex-col md:flex-row gap-8">
-                  <div className="w-full md:w-1/3 space-y-4">
-                    <div className={`p-4 rounded-lg border-2 transition-all ${step === 1 ? (businessMode === 'tax' ? 'border-indigo-500 bg-indigo-50' : 'border-emerald-500 bg-emerald-50') : 'border-transparent bg-white shadow-sm'}`}>
-                      <h3 className={`font-bold ${step === 1 ? (businessMode === 'tax' ? 'text-indigo-700' : 'text-emerald-700') : 'text-gray-600'}`}>1. 現状ヒアリング</h3>
-                      <p className="text-xs mt-1 text-gray-500">課題とリソースを入力</p>
-                    </div>
-                    <div className={`p-4 rounded-lg border-2 transition-all ${step === 2 ? (businessMode === 'tax' ? 'border-indigo-500 bg-indigo-50' : 'border-emerald-500 bg-emerald-50') : 'border-transparent bg-white shadow-sm'}`}>
-                      <h3 className={`font-bold ${step === 2 ? (businessMode === 'tax' ? 'text-indigo-700' : 'text-emerald-700') : 'text-gray-600'}`}>2. アイデア選定</h3>
-                      <p className="text-xs mt-1 text-gray-500">AIが最適なプランを提示</p>
-                    </div>
-                    <div className={`p-4 rounded-lg border-2 transition-all ${step === 3 ? (businessMode === 'tax' ? 'border-indigo-500 bg-indigo-50' : 'border-emerald-500 bg-emerald-50') : step > 3 ? 'border-transparent bg-white shadow-sm' : 'opacity-50 bg-white shadow-sm'}`}>
-                      <h3 className={`font-bold ${step === 3 ? (businessMode === 'tax' ? 'text-indigo-700' : 'text-emerald-700') : 'text-gray-600'}`}>3. アクション計画作成</h3>
-                      <p className="text-xs mt-1 text-gray-500">導入までのロードマップ策定</p>
-                    </div>
-                  </div>
-
-                  <div className="w-full md:w-2/3">
-                    {step === 1 && renderStep1()}
-                    {step === 2 && renderStep2()}
-                    {step === 3 && renderStep3()}
-                  </div>
-                </div>
-              </>
-            )}
-          </main>
-
-          {renderIdeaDetail()}
+      <div class="field-row">
+        <div class="field">
+          <label>水道光熱費</label>
+          <div class="unit-input"><input type="number" id="utility" min="0" placeholder="2"><span class="unit">万円</span></div>
         </div>
-      );
+        <div class="field">
+          <label>通信費</label>
+          <span class="hint">スマホ・ネットなど</span>
+          <div class="unit-input"><input type="number" id="comm" min="0" placeholder="1.5"><span class="unit">万円</span></div>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>保険料</label>
+          <span class="hint">生命・医療・自動車合計</span>
+          <div class="unit-input"><input type="number" id="insurance" min="0" placeholder="3"><span class="unit">万円</span></div>
+        </div>
+        <div class="field">
+          <label>教育費</label>
+          <span class="hint">学費・習い事</span>
+          <div class="unit-input"><input type="number" id="education" min="0" placeholder="3"><span class="unit">万円</span></div>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>交際・娯楽費</label>
+          <div class="unit-input"><input type="number" id="leisure" min="0" placeholder="3"><span class="unit">万円</span></div>
+        </div>
+        <div class="field">
+          <label>その他</label>
+          <span class="hint">日用品・医療費など</span>
+          <div class="unit-input"><input type="number" id="other" min="0" placeholder="3"><span class="unit">万円</span></div>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="prevStep()">◀ 戻る</button>
+        <button class="btn btn-primary" onclick="nextStep()">次へ ▶</button>
+      </div>
+    </div>
+
+    <!-- ステップ4：資産・負債 -->
+    <div class="card step-card hidden" id="step-4">
+      <h3><span class="step-num">4</span>資産・負債</h3>
+      <p class="desc">現在の資産と負債について教えてください。</p>
+
+      <div class="field">
+        <label>預貯金残高</label>
+        <div class="unit-input"><input type="number" id="savings" min="0" placeholder="500"><span class="unit">万円</span></div>
+      </div>
+
+      <div class="field">
+        <label>投資（株式・投資信託・NISA・iDeCo合計）</label>
+        <div class="unit-input"><input type="number" id="invest" min="0" placeholder="300"><span class="unit">万円</span></div>
+      </div>
+
+      <div class="field">
+        <label>不動産評価額</label>
+        <span class="hint">持ち家がある場合の現在の市場価値</span>
+        <div class="unit-input"><input type="number" id="realestate" min="0" placeholder="0"><span class="unit">万円</span></div>
+      </div>
+
+      <div class="field">
+        <label>住宅ローン残高</label>
+        <div class="unit-input"><input type="number" id="loanRemain" min="0" placeholder="0"><span class="unit">万円</span></div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>住宅ローン金利</label>
+          <div class="unit-input"><input type="number" id="loanRate" min="0" max="10" step="0.01" placeholder="1.0"><span class="unit">％</span></div>
+        </div>
+        <div class="field">
+          <label>残り返済年数</label>
+          <div class="unit-input"><input type="number" id="loanYears" min="0" max="50" placeholder="20"><span class="unit">年</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>その他の借入</label>
+        <span class="hint">マイカーローン・カードローンなど</span>
+        <div class="unit-input"><input type="number" id="otherLoan" min="0" placeholder="0"><span class="unit">万円</span></div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="prevStep()">◀ 戻る</button>
+        <button class="btn btn-primary" onclick="nextStep()">次へ ▶</button>
+      </div>
+    </div>
+
+    <!-- ステップ5：将来 -->
+    <div class="card step-card hidden" id="step-5">
+      <h3><span class="step-num">5</span>将来の希望</h3>
+      <p class="desc">老後の生活や、将来の予定を教えてください。</p>
+
+      <div class="field">
+        <label>老後の希望生活費（月額）</label>
+        <span class="hint">夫婦2人で月25〜30万円が一般的目安</span>
+        <div class="unit-input"><input type="number" id="retireMonthly" min="0" placeholder="25"><span class="unit">万円</span></div>
+      </div>
+
+      <div class="field">
+        <label>受け取り予定の退職金</label>
+        <div class="unit-input"><input type="number" id="retireBonus" min="0" placeholder="1500"><span class="unit">万円</span></div>
+      </div>
+
+      <div class="field">
+        <label>公的年金の見込み額（月額）</label>
+        <span class="hint">わからなければ「自動推計」を選択</span>
+        <select id="pensionMode" onchange="togglePension()">
+          <option value="auto">自動推計（年収から計算）</option>
+          <option value="manual">自分で入力</option>
+        </select>
+        <div id="pension-manual" class="hidden" style="margin-top:8px">
+          <div class="unit-input"><input type="number" id="pensionAmount" min="0" placeholder="15"><span class="unit">万円</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>大きな出費予定（最大5件）</label>
+        <span class="hint">住宅購入・進学・車買替・リフォームなど</span>
+        <div id="events-list"></div>
+        <button type="button" class="add-btn" onclick="addEvent()">＋ 出費予定を追加</button>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="prevStep()">◀ 戻る</button>
+        <button class="btn btn-primary" onclick="diagnose()">診断する 🔍</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 結果画面 -->
+  <div id="screen-result" class="hidden">
+
+    <div class="result-header fade-in">
+      <h2>📊 あなたのライフプラン診断結果</h2>
+      <p id="result-name">診断完了しました</p>
+    </div>
+
+    <!-- スコア -->
+    <div class="card score-card fade-in">
+      <h3 style="justify-content:center">家計健全度スコア</h3>
+      <div class="score-circle">
+        <svg width="200" height="200" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="85" fill="none" stroke="#E2E7EE" stroke-width="14"/>
+          <circle id="score-arc" cx="100" cy="100" r="85" fill="none" stroke="url(#grad)" stroke-width="14" stroke-dasharray="534" stroke-dashoffset="534" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#225AD3"/>
+              <stop offset="100%" stop-color="#0179E8"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="score-text">
+          <div class="score-num" id="score-value">--</div>
+          <div class="score-max">/ 100点</div>
+        </div>
+      </div>
+      <div class="score-rank" id="score-rank">--</div>
+      <p class="score-comment" id="score-comment"></p>
+    </div>
+
+    <!-- レーダーチャート -->
+    <div class="card chart-card fade-in">
+      <h3>4軸バランス診断</h3>
+      <div class="chart-wrap short"><canvas id="radarChart"></canvas></div>
+      <div class="metric-grid">
+        <div class="metric"><div class="label">貯蓄率</div><div class="value" id="m-saveRate">--%</div></div>
+        <div class="metric"><div class="label">固定費比率</div><div class="value" id="m-fixedRate">--%</div></div>
+        <div class="metric"><div class="label">流動性</div><div class="value" id="m-liquidity">--ヶ月</div></div>
+        <div class="metric"><div class="label">負債比率</div><div class="value" id="m-debtRate">--%</div></div>
+      </div>
+    </div>
+
+    <!-- キャッシュフロー -->
+    <div class="card chart-card fade-in">
+      <h3>年次キャッシュフロー</h3>
+      <p class="desc">毎年の収入と支出の見込みです。</p>
+      <div class="chart-wrap"><canvas id="cashflowChart"></canvas></div>
+    </div>
+
+    <!-- 資産推移 -->
+    <div class="card chart-card fade-in">
+      <h3>95歳までの資産推移</h3>
+      <p class="desc" id="asset-warning"></p>
+      <div class="chart-wrap"><canvas id="assetChart"></canvas></div>
+    </div>
+
+    <!-- 老後資金 -->
+    <div class="card fade-in">
+      <h3>老後資金診断</h3>
+      <div id="retire-result"></div>
+    </div>
+
+    <!-- 改善ポイント -->
+    <div class="card fade-in">
+      <h3>💎 改善ポイント TOP5</h3>
+      <p class="desc">優先順位の高い順に、今すぐできる改善案をまとめました。</p>
+      <ul class="advice-list" id="advice-list"></ul>
+    </div>
+
+    <!-- アクション -->
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="window.print()">🖨 印刷する</button>
+      <button class="btn btn-secondary" onclick="copyResult()">📋 結果をコピー</button>
+      <button class="btn btn-secondary" onclick="restart()">🔄 もう一度</button>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="footer">
+  Powered by <strong>Smile Plus Consulting</strong><br>
+  <a href="#" onclick="showModal('terms');return false">利用規約</a>・
+  <a href="#" onclick="showModal('privacy');return false">プライバシーポリシー</a>
+</div>
+
+<!-- ロック画面 -->
+<div class="lock-overlay" id="lock-overlay">
+  <div class="lock-card">
+    <div class="lock-icon">🔒</div>
+    <h3>無料利用回数を超えました</h3>
+    <p>FPみっけは3回まで無料でご利用いただけます。<br>続けて使うには、Pro版にお申し込みください。</p>
+    <div class="price-tag">月額 ¥2,980（税込）</div>
+    <p style="font-size:13px">ご購入後、メールでお届けするパスワードを入力してください。</p>
+    <input type="text" id="lock-password" placeholder="パスワードを入力">
+    <div class="lock-msg" id="lock-msg"></div>
+    <button class="btn btn-primary" onclick="checkPassword()" style="width:100%;margin-bottom:10px">パスワードを確認</button>
+    <button class="btn btn-secondary" onclick="window.open('https://buy.stripe.com/your-stripe-link','_blank')" style="width:100%">Pro版に申し込む</button>
+  </div>
+</div>
+
+<!-- 利用規約モーダル -->
+<div class="modal" id="modal-terms">
+  <div class="modal-content">
+    <button class="modal-close" onclick="hideModal('terms')">×</button>
+    <h3>利用規約</h3>
+    <p>本アプリ「FPみっけ」（以下「本サービス」）は、Smile Plus Consulting（以下「当方」）が提供するライフプラン診断ツールです。</p>
+    <p><strong>1. サービス内容</strong><br>本サービスは、利用者が入力した情報をもとに、家計健全度の目安と将来のキャッシュフローの試算を表示するものです。試算結果は概算であり、実際の家計や将来を保証するものではありません。</p>
+    <p><strong>2. 免責事項</strong><br>本サービスの利用結果に基づく投資判断・契約・その他の行為について、当方は一切の責任を負いません。具体的な意思決定にあたっては、ファイナンシャルプランナー・税理士等の専門家にご相談ください。</p>
+    <p><strong>3. 知的財産</strong><br>本サービスの著作権その他の権利は、当方または正当な権利者に帰属します。</p>
+    <p><strong>4. 規約の変更</strong><br>当方は、必要に応じて本規約を変更できるものとします。</p>
+  </div>
+</div>
+
+<!-- プライバシーポリシーモーダル -->
+<div class="modal" id="modal-privacy">
+  <div class="modal-content">
+    <button class="modal-close" onclick="hideModal('privacy')">×</button>
+    <h3>プライバシーポリシー</h3>
+    <p>本サービスは、利用者のプライバシーを最大限尊重します。</p>
+    <p><strong>1. 入力情報の取り扱い</strong><br>利用者がフォームに入力する情報（年齢・収入・支出など）は、お使いの端末（ブラウザ）内でのみ処理され、外部サーバーには送信されません。</p>
+    <p><strong>2. localStorage の利用</strong><br>利用回数の管理および認証状態の保持のために、ブラウザの localStorage を使用します。これらの情報を当方が取得することはありません。</p>
+    <p><strong>3. Cookie</strong><br>本サービスは独自のCookieを設置していません。</p>
+    <p><strong>4. お問い合わせ</strong><br>本ポリシーに関するお問い合わせは、Smile Plus Consultingまでご連絡ください。</p>
+  </div>
+</div>
+
+<script>
+/* ============================================
+   FPみっけ メインロジック
+   ============================================ */
+
+const STEP_NAMES=['基本情報','収入','支出','資産・負債','将来の希望'];
+const FREE_LIMIT=3;
+const UNLOCK_PASSWORD='fpmikke2026';
+let currentStep=1;
+let childCount=0;
+let eventCount=0;
+let charts={};
+
+/* ====== 起動時：利用回数チェック ====== */
+window.addEventListener('DOMContentLoaded',()=>{
+  checkUsage();
+  addChild();
+});
+
+function checkUsage(){
+  const unlocked=localStorage.getItem('fpmikke_unlocked')==='true';
+  if(unlocked)return;
+  const usage=parseInt(localStorage.getItem('fpmikke_usage')||'0',10);
+  if(usage>=FREE_LIMIT){
+    document.getElementById('lock-overlay').classList.add('show');
+  }
+}
+
+function checkPassword(){
+  const input=document.getElementById('lock-password').value.trim();
+  const msg=document.getElementById('lock-msg');
+  if(input===UNLOCK_PASSWORD){
+    localStorage.setItem('fpmikke_unlocked','true');
+    document.getElementById('lock-overlay').classList.remove('show');
+    msg.textContent='';
+  }else{
+    msg.textContent='パスワードが違います';
+  }
+}
+
+function incrementUsage(){
+  const unlocked=localStorage.getItem('fpmikke_unlocked')==='true';
+  if(unlocked)return;
+  const usage=parseInt(localStorage.getItem('fpmikke_usage')||'0',10);
+  localStorage.setItem('fpmikke_usage',String(usage+1));
+}
+
+/* ====== ウィザード操作 ====== */
+function startWizard(){
+  document.getElementById('screen-intro').classList.add('hidden');
+  document.getElementById('screen-wizard').classList.remove('hidden');
+  showStep(1);
+}
+
+function showStep(n){
+  document.querySelectorAll('.step-card').forEach(el=>el.classList.add('hidden'));
+  document.getElementById('step-'+n).classList.remove('hidden');
+  document.getElementById('step-'+n).classList.add('fade-in');
+  document.getElementById('current-step').textContent=n;
+  document.getElementById('step-name').textContent=STEP_NAMES[n-1];
+  document.getElementById('progress-bar').style.width=(n*20)+'%';
+  currentStep=n;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function nextStep(){
+  if(currentStep<5)showStep(currentStep+1);
+}
+
+function prevStep(){
+  if(currentStep>1)showStep(currentStep-1);
+}
+
+function toggleSpouse(){
+  const v=document.getElementById('spouse').value;
+  document.getElementById('spouse-fields').classList.toggle('hidden',v!=='yes');
+}
+
+function togglePension(){
+  const v=document.getElementById('pensionMode').value;
+  document.getElementById('pension-manual').classList.toggle('hidden',v!=='manual');
+}
+
+function addChild(){
+  if(childCount>=8)return;
+  childCount++;
+  const list=document.getElementById('children-list');
+  const row=document.createElement('div');
+  row.className='child-row';
+  row.innerHTML=`
+    <div class="unit-input" style="flex:1"><input type="number" class="child-age" min="0" max="30" placeholder="年齢"><span class="unit">歳</span></div>
+    <button type="button" class="remove-btn" onclick="this.parentElement.remove()">削除</button>
+  `;
+  list.appendChild(row);
+}
+
+function addEvent(){
+  if(eventCount>=5)return;
+  eventCount++;
+  const list=document.getElementById('events-list');
+  const row=document.createElement('div');
+  row.className='event-row';
+  row.innerHTML=`
+    <input type="text" class="event-name" placeholder="例：住宅購入">
+    <div class="unit-input"><input type="number" class="event-year" min="0" max="50" placeholder="5"><span class="unit">年後</span></div>
+    <div class="unit-input"><input type="number" class="event-amount" min="0" placeholder="1000"><span class="unit">万円</span></div>
+    <button type="button" class="remove-btn" onclick="this.parentElement.remove();eventCount--;">×</button>
+  `;
+  list.appendChild(row);
+}
+
+/* ====== データ収集 ====== */
+function collectData(){
+  const num=id=>parseFloat(document.getElementById(id).value)||0;
+  const str=id=>document.getElementById(id).value||'';
+
+  const children=[];
+  document.querySelectorAll('.child-age').forEach(el=>{
+    const v=parseInt(el.value);
+    if(!isNaN(v))children.push(v);
+  });
+
+  const events=[];
+  document.querySelectorAll('.event-row').forEach(row=>{
+    const name=row.querySelector('.event-name').value;
+    const year=parseInt(row.querySelector('.event-year').value);
+    const amount=parseFloat(row.querySelector('.event-amount').value);
+    if(name&&!isNaN(year)&&!isNaN(amount)){
+      events.push({name,year,amount});
+    }
+  });
+
+  return{
+    name:str('name'),
+    age:num('age')||45,
+    gender:str('gender'),
+    occupation:str('occupation'),
+    prefecture:str('prefecture'),
+    spouse:str('spouse')==='yes',
+    spouseAge:num('spouseAge'),
+    spouseIncome:num('spouseIncome'),
+    children:children,
+    annualIncome:num('annualIncome'),
+    monthlyIncome:num('monthlyIncome'),
+    spouseMonthly:num('spouseMonthly'),
+    otherIncome:num('otherIncome'),
+    retireAge:num('retireAge')||65,
+    rent:num('rent'),
+    food:num('food'),
+    utility:num('utility'),
+    comm:num('comm'),
+    insurance:num('insurance'),
+    education:num('education'),
+    leisure:num('leisure'),
+    other:num('other'),
+    savings:num('savings'),
+    invest:num('invest'),
+    realestate:num('realestate'),
+    loanRemain:num('loanRemain'),
+    loanRate:num('loanRate'),
+    loanYears:num('loanYears'),
+    otherLoan:num('otherLoan'),
+    retireMonthly:num('retireMonthly')||25,
+    retireBonus:num('retireBonus'),
+    pensionMode:str('pensionMode'),
+    pensionAmount:num('pensionAmount'),
+    events:events
+  };
+}
+
+/* ====== 診断ロジック ====== */
+function diagnose(){
+  const d=collectData();
+  if(!d.age||!d.annualIncome){
+    alert('年齢と年収は必須です。前のステップに戻ってご入力ください。');
+    return;
+  }
+
+  // 利用回数チェック
+  const unlocked=localStorage.getItem('fpmikke_unlocked')==='true';
+  const usage=parseInt(localStorage.getItem('fpmikke_usage')||'0',10);
+  if(!unlocked&&usage>=FREE_LIMIT){
+    document.getElementById('lock-overlay').classList.add('show');
+    return;
+  }
+  incrementUsage();
+
+  // 月収・支出計算
+  const totalMonthlyIncome=d.monthlyIncome+d.spouseMonthly+d.otherIncome;
+  const totalMonthlyExp=d.rent+d.food+d.utility+d.comm+d.insurance+d.education+d.leisure+d.other;
+  const monthlySaving=totalMonthlyIncome-totalMonthlyExp;
+  const yearlyIncome=totalMonthlyIncome*12;
+  const yearlyExp=totalMonthlyExp*12;
+  const yearlySaving=monthlySaving*12;
+
+  // 4軸スコア
+  const saveRate=totalMonthlyIncome>0?(monthlySaving/totalMonthlyIncome)*100:0;
+  const fixedRate=totalMonthlyIncome>0?((d.rent+d.insurance+d.comm)/totalMonthlyIncome)*100:0;
+  const liquidity=totalMonthlyExp>0?d.savings/totalMonthlyExp:0;
+  const totalDebt=d.loanRemain+d.otherLoan;
+  const debtRate=d.annualIncome>0?(totalDebt/d.annualIncome)*100:0;
+
+  // スコア化（各25点満点）
+  const score1=Math.max(0,Math.min(25,saveRate*1.25));    // 20%で満点
+  const score2=Math.max(0,Math.min(25,(50-fixedRate)*0.83)); // 低いほど良い
+  const score3=Math.max(0,Math.min(25,liquidity*4.17));   // 6ヶ月で満点
+  const score4=Math.max(0,Math.min(25,(500-debtRate)*0.05)); // 低いほど良い
+  const totalScore=Math.round(score1+score2+score3+score4);
+
+  // ランク判定
+  let rank='D',rankComment='';
+  if(totalScore>=85){rank='S';rankComment='非常に健全な家計です。この調子で老後の備えを進めましょう。';}
+  else if(totalScore>=70){rank='A';rankComment='バランスの良い家計です。さらに改善できるポイントを下記でチェック。';}
+  else if(totalScore>=55){rank='B';rankComment='まずまずですが、改善の余地があります。優先順位の高いものから着手を。';}
+  else if(totalScore>=40){rank='C';rankComment='早めの見直しをおすすめします。下記の改善ポイントから始めましょう。';}
+  else {rank='D';rankComment='家計の見直しが急務です。まずは固定費の削減から手をつけましょう。';}
+
+  // 年金推計
+  let pension=0;
+  if(d.pensionMode==='manual'){
+    pension=d.pensionAmount;
+  }else{
+    // 自動推計：年収×0.4÷12（おおよその目安）
+    pension=Math.round((d.annualIncome*0.4)/12*10)/10;
+    if(d.spouse)pension+=6.5; // 配偶者の基礎年金概算
+    if(d.occupation==='self'||d.occupation==='freelance')pension=Math.round((d.annualIncome*0.18)/12*10)/10;
+  }
+
+  // ライフプラン表（年次CF）
+  const startAge=d.age;
+  const endAge=95;
+  const years=[];
+  let asset=d.savings+d.invest;
+  let loanRemain=d.loanRemain;
+  let assetWarning=null;
+
+  for(let a=startAge;a<=endAge;a++){
+    const yearsFromNow=a-startAge;
+    const inflation=Math.pow(1.01,yearsFromNow);
+
+    // 収入
+    let income=0;
+    if(a<d.retireAge){
+      income=yearlyIncome;
+      if(a>=60&&a<d.retireAge)income*=0.7; // 60歳以降減額
+    }else{
+      income=pension*12;
+      if(d.spouse)income+=pension*0.7*12; // 配偶者分概算
     }
 
-    /* マウント */
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-  </script>
+    // 支出
+    let exp=yearlyExp*inflation;
+    // 教育費は子の年齢で増減（簡易：18歳まで）
+    let eduAdjust=0;
+    d.children.forEach(cAge=>{
+      const futureAge=cAge+yearsFromNow;
+      if(futureAge>=15&&futureAge<=22)eduAdjust+=80; // 高校〜大学期 +80万/年
+    });
+    exp+=eduAdjust;
+
+    // 老後は希望生活費に切り替え
+    if(a>=d.retireAge){
+      exp=d.retireMonthly*12*inflation;
+      if(d.spouse)exp*=1.4;
+    }
+
+    // ローン返済
+    let loanPayment=0;
+    if(yearsFromNow<d.loanYears&&loanRemain>0){
+      loanPayment=Math.min(loanRemain,(d.loanRemain/d.loanYears)+(loanRemain*d.loanRate/100));
+      loanRemain-=Math.max(0,d.loanRemain/d.loanYears);
+    }
+
+    // 大型支出
+    let bigExp=0;
+    d.events.forEach(e=>{
+      if(e.year===yearsFromNow)bigExp+=e.amount;
+    });
+
+    // 退職金
+    let retireBonus=0;
+    if(a===d.retireAge)retireBonus=d.retireBonus;
+
+    const balance=income-exp-loanPayment-bigExp+retireBonus;
+    asset+=balance;
+
+    if(asset<0&&!assetWarning)assetWarning=a;
+
+    years.push({age:a,income:Math.round(income),exp:Math.round(exp+loanPayment+bigExp),asset:Math.round(asset),balance:Math.round(balance)});
+  }
+
+  // 老後資金診断
+  const retireYears=Math.max(0,90-d.retireAge);
+  const retireExpTotal=d.retireMonthly*12*retireYears*(d.spouse?1.4:1);
+  const pensionTotal=pension*12*retireYears*(d.spouse?1.7:1);
+  const requiredRetire=retireExpTotal-pensionTotal;
+  const expectedAtRetire=years.find(y=>y.age===d.retireAge)?.asset||0;
+  const retireGap=expectedAtRetire-requiredRetire;
+
+  // 改善ポイント
+  const advices=[];
+  if(saveRate<10){
+    advices.push({priority:'high',title:'貯蓄率を上げる',text:`現在の貯蓄率は${saveRate.toFixed(1)}％。手取りの15％以上を目標にしましょう。固定費の見直しから着手するのが近道です。`});
+  }
+  if(fixedRate>40){
+    advices.push({priority:'high',title:'固定費を見直す',text:`住居費・通信費・保険料の合計が手取りの${fixedRate.toFixed(1)}％。35％以下が理想です。格安SIM・保険の重複チェックから始めましょう。`});
+  }
+  if(d.insurance*12>d.annualIncome*0.1){
+    advices.push({priority:'high',title:'保険料が高すぎる可能性',text:`保険料が年収の${((d.insurance*12/d.annualIncome)*100).toFixed(1)}％。10％を超えています。必要保障額を再計算し、過剰な保険を整理しましょう。`});
+  }
+  if(liquidity<3){
+    advices.push({priority:'high',title:'生活防衛資金を確保',text:`現在の預貯金は生活費${liquidity.toFixed(1)}ヶ月分。最低でも生活費6ヶ月分を緊急資金として確保することをおすすめします。`});
+  }
+  if(d.invest===0&&d.age<60){
+    advices.push({priority:'mid',title:'NISA・iDeCoを活用',text:'投資資産がゼロです。新NISA（年360万円まで非課税）やiDeCoを活用すれば、税優遇を受けながら老後資金を効率的に作れます。'});
+  }
+  if(retireGap<0){
+    advices.push({priority:'high',title:'老後資金が不足する見込み',text:`退職時点で約${Math.abs(Math.round(retireGap/100))*100}万円の不足が予想されます。月${Math.ceil(Math.abs(retireGap)/((d.retireAge-d.age)*12)/10)*10}万円の積み立てで補えます。`});
+  }
+  if(debtRate>300){
+    advices.push({priority:'mid',title:'借入が多め',text:`年収に対する借入比率が${debtRate.toFixed(0)}％。返済計画を見直し、繰上返済も検討しましょう。`});
+  }
+  if(d.children.length>0&&d.education<3){
+    advices.push({priority:'mid',title:'教育費の準備を',text:'お子様の教育費は大学まで一人約1,000万円が目安です。学資保険やジュニアNISAでの計画的な準備をおすすめします。'});
+  }
+  if(assetWarning){
+    advices.push({priority:'high',title:`${assetWarning}歳で資産が枯渇する見込み`,text:'今のままだと将来資産がマイナスになります。支出削減か収入増、または運用利回りの改善が必要です。'});
+  }
+  if(d.age>=50&&d.invest<300){
+    advices.push({priority:'mid',title:'老後の運用を始める',text:'50代以降は安全資産中心の運用が基本ですが、インフレ対策として一部は投資信託などで運用することをおすすめします。'});
+  }
+  if(d.realestate===0&&d.rent>10){
+    advices.push({priority:'low',title:'住宅購入も選択肢',text:`家賃が月${d.rent}万円。エリアや年齢にもよりますが、長期的には購入の方が有利な場合もあります。一度シミュレーションを。`});
+  }
+
+  // 優先順位ソート（high→mid→low）して上位5件
+  const order={high:0,mid:1,low:2};
+  advices.sort((a,b)=>order[a.priority]-order[b.priority]);
+  const topAdvices=advices.slice(0,5);
+
+  // 結果表示
+  showResult({
+    data:d,
+    score:totalScore,
+    rank,
+    rankComment,
+    saveRate,fixedRate,liquidity,debtRate,
+    years,
+    expectedAtRetire,
+    requiredRetire,
+    retireGap,
+    pension,
+    advices:topAdvices,
+    assetWarning
+  });
+}
+
+/* ====== 結果表示 ====== */
+function showResult(r){
+  document.getElementById('screen-wizard').classList.add('hidden');
+  document.getElementById('screen-result').classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  // 名前
+  document.getElementById('result-name').textContent=
+    r.data.name?`${r.data.name}様の診断結果`:'診断完了しました';
+
+  // スコア
+  document.getElementById('score-value').textContent=r.score;
+  const arc=document.getElementById('score-arc');
+  const circumference=2*Math.PI*85;
+  arc.style.strokeDasharray=circumference;
+  setTimeout(()=>{
+    arc.style.transition='stroke-dashoffset 1.4s ease';
+    arc.style.strokeDashoffset=circumference*(1-r.score/100);
+  },200);
+
+  const rankEl=document.getElementById('score-rank');
+  rankEl.textContent=`ランク ${r.rank}`;
+  rankEl.className='score-rank rank-'+r.rank;
+  document.getElementById('score-comment').textContent=r.rankComment;
+
+  // メトリクス
+  document.getElementById('m-saveRate').textContent=r.saveRate.toFixed(1)+'%';
+  document.getElementById('m-saveRate').className='value '+(r.saveRate>=15?'good':r.saveRate<10?'warn':'');
+  document.getElementById('m-fixedRate').textContent=r.fixedRate.toFixed(1)+'%';
+  document.getElementById('m-fixedRate').className='value '+(r.fixedRate<=35?'good':r.fixedRate>45?'warn':'');
+  document.getElementById('m-liquidity').textContent=r.liquidity.toFixed(1)+'ヶ月';
+  document.getElementById('m-liquidity').className='value '+(r.liquidity>=6?'good':r.liquidity<3?'warn':'');
+  document.getElementById('m-debtRate').textContent=r.debtRate.toFixed(0)+'%';
+  document.getElementById('m-debtRate').className='value '+(r.debtRate<=200?'good':r.debtRate>400?'warn':'');
+
+  // チャート描画
+  drawRadar(r);
+  drawCashflow(r);
+  drawAsset(r);
+
+  // 老後資金
+  const retireBox=document.getElementById('retire-result');
+  const gap=r.retireGap;
+  let cls='warn',label='不足',icon='⚠️';
+  if(gap>=0){cls='good';label='余裕';icon='✅';}
+  if(gap>=-300&&gap<0){cls='';label='ほぼ均衡';icon='⚖️';}
+  retireBox.innerHTML=`
+    <div class="retire-summary ${cls}">
+      <div class="title">${icon} 退職時点（${r.data.retireAge}歳）の予想資産</div>
+      <div class="amount">${(r.expectedAtRetire/10000).toFixed(0)}万円</div>
+      <div class="note">必要老後資金の目安：${(r.requiredRetire/10000).toFixed(0)}万円</div>
+    </div>
+    <div class="retire-summary ${cls}" style="margin-top:10px">
+      <div class="title">老後資金の過不足</div>
+      <div class="amount ${cls}">${gap>=0?'+':''}${(gap/10000).toFixed(0)}万円（${label}）</div>
+      <div class="note">公的年金の見込み：月${r.pension.toFixed(1)}万円</div>
+    </div>
+  `;
+
+  // 資産警告
+  if(r.assetWarning){
+    document.getElementById('asset-warning').innerHTML=
+      `⚠️ ${r.assetWarning}歳で資産がマイナスになる見込みです。`;
+    document.getElementById('asset-warning').style.color='var(--warning)';
+  }else{
+    document.getElementById('asset-warning').textContent='95歳まで資産が持続する見込みです。';
+    document.getElementById('asset-warning').style.color='var(--success)';
+  }
+
+  // 改善ポイント
+  const list=document.getElementById('advice-list');
+  list.innerHTML='';
+  r.advices.forEach((a,i)=>{
+    const li=document.createElement('li');
+    li.className='advice-item priority-'+a.priority;
+    li.innerHTML=`
+      <div class="advice-num">${i+1}</div>
+      <div class="advice-body">
+        <div class="advice-title">${a.title}</div>
+        <div class="advice-text">${a.text}</div>
+      </div>
+    `;
+    list.appendChild(li);
+  });
+
+  // TODO: Pro版ではここでClaude APIを呼んで、個別アドバイス文を自然な日本語で生成する
+  // const aiAdvice = await fetch('https://fpmikke-api.yymmatsu.workers.dev/advise', {...})
+
+  // 結果を保存（コピー用）
+  window._lastResult=r;
+}
+
+/* ====== チャート ====== */
+function drawRadar(r){
+  if(charts.radar)charts.radar.destroy();
+  const ctx=document.getElementById('radarChart').getContext('2d');
+  // スコア化：0〜100に正規化
+  const sc1=Math.min(100,r.saveRate*5);          // 20%で100点
+  const sc2=Math.max(0,Math.min(100,(50-r.fixedRate)*3.3));
+  const sc3=Math.min(100,r.liquidity*16.7);     // 6ヶ月で100点
+  const sc4=Math.max(0,Math.min(100,(500-r.debtRate)*0.2));
+  charts.radar=new Chart(ctx,{
+    type:'radar',
+    data:{
+      labels:['貯蓄率','固定費の低さ','流動性','負債の少なさ'],
+      datasets:[{
+        label:'あなた',
+        data:[sc1,sc2,sc3,sc4],
+        backgroundColor:'rgba(34,90,211,0.2)',
+        borderColor:'#225AD3',
+        borderWidth:2,
+        pointBackgroundColor:'#225AD3',
+        pointRadius:4
+      },{
+        label:'平均的な目標',
+        data:[60,60,60,60],
+        backgroundColor:'rgba(208,169,0,0.1)',
+        borderColor:'#D0A900',
+        borderWidth:1.5,
+        borderDash:[5,5],
+        pointRadius:0
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      scales:{r:{beginAtZero:true,max:100,ticks:{display:false},pointLabels:{font:{size:12,family:'Noto Sans JP'}}}},
+      plugins:{legend:{position:'bottom',labels:{font:{family:'Noto Sans JP'}}}}
+    }
+  });
+}
+
+function drawCashflow(r){
+  if(charts.cf)charts.cf.destroy();
+  const ctx=document.getElementById('cashflowChart').getContext('2d');
+  const labels=r.years.filter((_,i)=>i%2===0).map(y=>y.age+'歳');
+  const incomeData=r.years.filter((_,i)=>i%2===0).map(y=>y.income);
+  const expData=r.years.filter((_,i)=>i%2===0).map(y=>y.exp);
+  charts.cf=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:labels,
+      datasets:[{
+        label:'収入',data:incomeData,
+        borderColor:'#225AD3',backgroundColor:'rgba(34,90,211,0.1)',
+        borderWidth:2.5,tension:0.3,fill:true
+      },{
+        label:'支出',data:expData,
+        borderColor:'#E8551B',backgroundColor:'rgba(232,85,27,0.08)',
+        borderWidth:2.5,tension:0.3,fill:true
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom',labels:{font:{family:'Noto Sans JP'}}},
+        tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}万円`}}
+      },
+      scales:{y:{ticks:{callback:v=>v+'万'}}}
+    }
+  });
+}
+
+function drawAsset(r){
+  if(charts.asset)charts.asset.destroy();
+  const ctx=document.getElementById('assetChart').getContext('2d');
+  const labels=r.years.filter((_,i)=>i%2===0).map(y=>y.age+'歳');
+  const data=r.years.filter((_,i)=>i%2===0).map(y=>y.asset);
+  charts.asset=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:labels,
+      datasets:[{
+        label:'資産残高',data:data,
+        borderColor:'#0179E8',
+        backgroundColor:ctx=>{
+          const grad=ctx.chart.ctx.createLinearGradient(0,0,0,300);
+          grad.addColorStop(0,'rgba(1,121,232,0.3)');
+          grad.addColorStop(1,'rgba(1,121,232,0)');
+          return grad;
+        },
+        borderWidth:3,tension:0.3,fill:true,
+        pointRadius:0,pointHoverRadius:6
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>`資産: ${c.parsed.y}万円`}}
+      },
+      scales:{
+        y:{
+          ticks:{callback:v=>v+'万'},
+          grid:{color:c=>c.tick.value===0?'#E8551B':'#E2E7EE'}
+        }
+      }
+    }
+  });
+}
+
+/* ====== その他 ====== */
+function copyResult(){
+  const r=window._lastResult;
+  if(!r)return;
+  const text=`【FPみっけ 診断結果】
+${r.data.name||'お客様'}（${r.data.age}歳）
+
+■ 家計健全度スコア：${r.score}点（ランク${r.rank}）
+${r.rankComment}
+
+■ 4軸診断
+・貯蓄率：${r.saveRate.toFixed(1)}%
+・固定費比率：${r.fixedRate.toFixed(1)}%
+・流動性：${r.liquidity.toFixed(1)}ヶ月分
+・負債比率：${r.debtRate.toFixed(0)}%
+
+■ 老後資金
+退職時の予想資産：${(r.expectedAtRetire/10000).toFixed(0)}万円
+必要老後資金：${(r.requiredRetire/10000).toFixed(0)}万円
+過不足：${r.retireGap>=0?'+':''}${(r.retireGap/10000).toFixed(0)}万円
+
+■ 改善ポイントTOP5
+${r.advices.map((a,i)=>`${i+1}. ${a.title}\n   ${a.text}`).join('\n')}
+
+— Powered by FPみっけ / Smile Plus Consulting`;
+
+  navigator.clipboard.writeText(text).then(()=>{
+    alert('診断結果をコピーしました');
+  }).catch(()=>{
+    alert('コピーに失敗しました。手動でコピーしてください。');
+  });
+}
+
+function restart(){
+  if(!confirm('入力した内容をリセットして、最初からやり直しますか？'))return;
+  document.getElementById('screen-result').classList.add('hidden');
+  document.getElementById('screen-intro').classList.remove('hidden');
+  document.querySelectorAll('input,select').forEach(el=>{
+    if(el.type==='number'||el.type==='text')el.value='';
+    else if(el.tagName==='SELECT')el.selectedIndex=0;
+  });
+  document.getElementById('children-list').innerHTML='';
+  document.getElementById('events-list').innerHTML='';
+  childCount=0;eventCount=0;
+  addChild();
+  showStep(1);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showModal(name){
+  document.getElementById('modal-'+name).classList.add('show');
+}
+function hideModal(name){
+  document.getElementById('modal-'+name).classList.remove('show');
+}
+
+// モーダル外クリックで閉じる
+document.querySelectorAll('.modal').forEach(m=>{
+  m.addEventListener('click',e=>{
+    if(e.target===m)m.classList.remove('show');
+  });
+});
+</script>
+
 </body>
 </html>
